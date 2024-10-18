@@ -15,6 +15,33 @@ body {
   font-size: 1rem;
 }
 
+input[type='checkbox'] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--purple);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+input[type='checkbox']:checked {
+  background-color: var(--purple);
+}
+
+input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  top: 2px;
+  left: 5px;
+  transform: rotate(45deg);
+}
+
 .container {
   width: 100%;
   max-width: calc(100% - 2rem);
@@ -157,4 +184,11 @@ input[type='range'] {
     color: rgb(0, 148, 20);
     text-align: center;
   }
+}
+
+.label-for-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
