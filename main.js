@@ -1,9 +1,5 @@
-const $q = (el) => {
-  return document.querySelector(el);
-};
-const $qa = (el) => {
-  return document.querySelectorAll(el);
-};
+const $q = (el) => document.querySelector(el);
+const $qa = (el) => document.querySelectorAll(el);
 
 const passGen = () => {
   const lowercase = 'abcdefghijklmnopqrstuvwxyz';
@@ -11,69 +7,91 @@ const passGen = () => {
   const numbers = '0123456789';
   const symbols = '!@#$%^&*()_-+=[]{}|;:,.<>?';
 
-  const generate = (length, options) => {
+  const generate = (
+    length,
+    { includeLowercase, includeUppercase, includeNumbers, includeSymbols }
+  ) => {
     let charPool = '';
-    if (options.includeLowercase) {
+    const guaranteedChars = [];
+
+    if (includeLowercase) {
       charPool += lowercase;
+      guaranteedChars.push(
+        lowercase[Math.floor(Math.random() * lowercase.length)]
+      );
     }
-    if (options.includeUppercase) {
+    if (includeUppercase) {
       charPool += uppercase;
+      guaranteedChars.push(
+        uppercase[Math.floor(Math.random() * uppercase.length)]
+      );
     }
-    if (options.includeNumbers) {
+    if (includeNumbers) {
       charPool += numbers;
+      guaranteedChars.push(numbers[Math.floor(Math.random() * numbers.length)]);
     }
-    if (options.includeSymbols) {
+    if (includeSymbols) {
       charPool += symbols;
+      guaranteedChars.push(symbols[Math.floor(Math.random() * symbols.length)]);
     }
 
-    return Array.from({ length }, () => {
-      const randomIdx = Math.floor(Math.random() * charPool.length);
-      return charPool[randomIdx];
-    }).join('');
+    const remainingLength = length - guaranteedChars.length;
+    const randomChars = Array.from({ length: remainingLength }, () => {
+      return charPool[Math.floor(Math.random() * charPool.length)];
+    });
+
+    const passwordArray = [...guaranteedChars, ...randomChars];
+
+    // Shuffle using ES6 `sort` method with a random comparator
+    return passwordArray
+      .sort(() => Math.random() - 0.5) // Simple way to shuffle an array
+      .join('');
   };
 
   return { generate };
 };
 
+// Event listeners
 const lengthField = $q('#length');
 const copyMessageEl = $q('#copy-message');
 
-if (lengthField)
+if (lengthField) {
   lengthField.addEventListener('input', (e) => {
     $q('#length-value').innerText = e.target.value;
     copyMessageEl.innerText = '';
   });
+}
 
-if ($q('#generate'))
+if ($q('#generate')) {
   $q('#generate').addEventListener('click', () => {
-    const length = lengthField.value;
+    const length = +lengthField.value; // Convert length to number with the '+' operator
     const options = {
       includeLowercase: $q('#include-lowercase').checked,
       includeUppercase: $q('#include-uppercase').checked,
       includeNumbers: $q('#include-numbers').checked,
       includeSymbols: $q('#include-symbols').checked,
     };
-    const generator = passGen();
-    const password = generator.generate(length, options);
-
+    const password = passGen().generate(length, options);
     $q('#password').value = password;
   });
+}
 
-if ($q('#copy'))
+if ($q('#copy')) {
   $q('#copy').addEventListener('click', (e) => {
     e.preventDefault();
     const passField = $q('#password');
     passField.select();
-    passField.setSelectionRange(0, 99999); // for mobile
+    passField.setSelectionRange(0, 99999);
 
-    if (passField.value.length > 0) copyToClibBoard(passField.value);
+    if (passField.value) copyToClipboard(passField.value);
   });
+}
 
-const copyToClibBoard = async (val) => {
+const copyToClipboard = async (val) => {
   try {
-    navigator.clipboard.writeText(val);
+    await navigator.clipboard.writeText(val);
     copyMessageEl.innerText = 'Password copied to clipboard';
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
